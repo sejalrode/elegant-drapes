@@ -1,4 +1,5 @@
 import { formatCurrency } from "@/lib/formatCurrency";
+import { getOrderSourceName } from "@/lib/sourceName";
 import { getNextDeliveryStatus } from "@/lib/statusFlow";
 import type { Order } from "@/types/order";
 import { StatusBadge } from "./StatusBadge";
@@ -31,7 +32,7 @@ export function OrderCard({ order, onUpdate, onDelete }: OrderCardProps) {
             <p className="text-xs text-slate-500">{new Date(order.order_date).toLocaleDateString("en-IN")}</p>
           </div>
           <p className="mt-2 text-sm text-slate-700">Customer: {order.customer_name}</p>
-          <p className="text-sm text-slate-700">Source: {order.source_groups?.name ?? "Not selected"}</p>
+          <p className="text-sm text-slate-700">Source: {getOrderSourceName(order)}</p>
         </div>
       </div>
       <dl className="mt-4 grid grid-cols-3 gap-2 text-sm">

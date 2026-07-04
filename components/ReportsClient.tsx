@@ -5,6 +5,7 @@ import { BarChart3 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { demoOrders } from "@/lib/demoData";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { getOrderSourceName } from "@/lib/sourceName";
 import { createClient } from "@/lib/supabaseClient";
 import type { Order } from "@/types/order";
 
@@ -44,7 +45,7 @@ export function ReportsClient() {
   const profit = orders.reduce((sum, order) => sum + Number(order.profit), 0);
   const pending = orders.filter((order) => order.payment_status !== "paid");
   const bySource = orders.reduce<Record<string, { orders: number; profit: number }>>((acc, order) => {
-    const source = order.source_groups?.name ?? "No source";
+    const source = getOrderSourceName(order);
     acc[source] = acc[source] || { orders: 0, profit: 0 };
     acc[source].orders += 1;
     acc[source].profit += Number(order.profit);

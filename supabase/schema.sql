@@ -17,6 +17,7 @@ create table if not exists orders (
   order_code text unique,
   order_date date not null default current_date,
   source_group_id uuid references source_groups(id) on delete set null,
+  source_name text,
   item_photo_url text,
   category text not null check (category in ('Saree', 'Jewelry', 'Dress', 'Decor', 'Other')),
   actual_price numeric(10,2) not null check (actual_price >= 0),
@@ -41,6 +42,7 @@ add constraint advance_not_more_than_selling check (advance_paid <= selling_pric
 
 create index if not exists orders_order_date_idx on orders(order_date);
 create index if not exists orders_source_group_idx on orders(source_group_id);
+create index if not exists orders_source_name_idx on orders(source_name);
 create index if not exists orders_payment_status_idx on orders(payment_status);
 create index if not exists orders_delivery_status_idx on orders(delivery_status);
 create index if not exists orders_customer_name_idx on orders(customer_name);

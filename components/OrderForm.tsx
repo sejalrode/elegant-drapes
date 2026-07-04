@@ -1,24 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Save } from "lucide-react";
 import { calculateBalance, calculateProfit } from "@/lib/calculations";
 import { categoryOptions, deliveryLabels, deliveryStatusOptions, paymentLabels, paymentStatusOptions } from "@/lib/constants";
 import { createClient, getStorageBucket } from "@/lib/supabaseClient";
 import type { Order, OrderFormValues } from "@/types/order";
-import type { SourceGroup } from "@/types/sourceGroup";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { ImageUpload } from "./ImageUpload";
 
 type OrderFormProps = {
-  sourceGroups: SourceGroup[];
+  sourceSuggestions: string[];
   initialOrder?: Order;
 };
 
 const today = new Date().toISOString().slice(0, 10);
 
-export function OrderForm({ sourceGroups, initialOrder }: OrderFormProps) {
+export function OrderForm({ sourceSuggestions, initialOrder }: OrderFormProps) {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialOrder?.item_photo_url ?? null);
@@ -26,7 +25,7 @@ export function OrderForm({ sourceGroups, initialOrder }: OrderFormProps) {
   const [saving, setSaving] = useState(false);
   const [values, setValues] = useState<OrderFormValues>({
     order_date: initialOrder?.order_date ?? today,
-    source_group_id: initialOrder?.source_group_id ?? sourceGroups[0]?.id ?? "",
+    source_name: initialOrder?.source_name ?? initialOrder?.source_groups?.name ?? "",
     category: initialOrder?.category ?? "Saree",
     actual_price: initialOrder ? String(initialOrder.actual_price) : "",
     selling_price: initialOrder ? String(initialOrder.selling_price) : "",
@@ -53,14 +52,6 @@ export function OrderForm({ sourceGroups, initialOrder }: OrderFormProps) {
   function update(name: keyof OrderFormValues, value: string) {
     setValues((current) => ({ ...current, [name]: value }));
   }
-
-  useEffect(() => {
-    if (initialOrder || sourceGroups.length === 0) return;
-    setValues((current) => {
-      if (sourceGroups.some((group) => group.id === current.source_group_id)) return current;
-      return { ...current, source_group_id: sourceGroups[0].id };
-    });
-  }, [initialOrder, sourceGroups]);
 
   function chooseFile(nextFile: File | null) {
     setFile(nextFile);
@@ -121,7 +112,8 @@ export function OrderForm({ sourceGroups, initialOrder }: OrderFormProps) {
     try {
       const payload = {
         order_date: values.order_date,
-        source_group_id: values.source_group_id || null,
+        source_name: values.source_name.trim() || null,
+        source_group_id: null,
         category: values.category,
         actual_price: actualPrice,
         selling_price: sellingPrice,
@@ -168,15 +160,18 @@ export function OrderForm({ sourceGroups, initialOrder }: OrderFormProps) {
         </label>
         <label className="space-y-1">
           <span className="text-sm font-semibold text-slate-700">Source WhatsApp Group</span>
-          <select
-            value={values.source_group_id}
-            onChange={(event) => update("source_group_id", event.target.value)}
+          <input
+            list="source-name-suggestions"
+            value={values.source_name}
+            onChange={(event) => update("source_name", event.target.value)}
             className="h-12 w-full rounded-md border border-slate-300 px-3 text-base outline-none focus:border-palm"
-          >
-            {sourceGroups.map((group) => (
-              <option key={group.id} value={group.id}>{group.name}</option>
+            placeholder="Priya Sarees"
+          />
+          <datalist id="source-name-suggestions">
+            {sourceSuggestions.map((source) => (
+              <option key={source} value={source} />
             ))}
-          </select>
+          </datalist>
         </label>
       </div>
 
@@ -302,7 +297,7 @@ export function OrderForm({ sourceGroups, initialOrder }: OrderFormProps) {
       <button
         type="button"
         onClick={saveOrder}
-        disabled={saving || sourceGroups.length === 0}
+        disabled={saving}
         className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-palm px-4 text-base font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
       >
         <Save className="h-5 w-5" aria-hidden="true" />

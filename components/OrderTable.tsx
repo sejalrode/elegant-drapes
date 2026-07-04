@@ -1,4 +1,5 @@
 import { formatCurrency } from "@/lib/formatCurrency";
+import { getOrderSourceName } from "@/lib/sourceName";
 import { getNextDeliveryStatus } from "@/lib/statusFlow";
 import type { Order } from "@/types/order";
 import { StatusBadge } from "./StatusBadge";
@@ -46,7 +47,7 @@ export function OrderTable({ orders, onUpdate, onDelete }: OrderTableProps) {
                   <p className="font-medium">{order.customer_name}</p>
                   <p className="text-xs text-slate-500">{order.customer_phone}</p>
                 </td>
-                <td className="px-4 py-3">{order.source_groups?.name ?? "Not selected"}</td>
+                <td className="px-4 py-3">{getOrderSourceName(order)}</td>
                 <td className="px-4 py-3">
                   <p>Sold {formatCurrency(order.selling_price)}</p>
                   <p className="text-palm">Profit {formatCurrency(order.profit)}</p>

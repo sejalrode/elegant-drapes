@@ -8,6 +8,7 @@ import { OrderTable } from "@/components/OrderTable";
 import { EmptyState } from "@/components/EmptyState";
 import { categoryOptions } from "@/lib/constants";
 import { demoOrders } from "@/lib/demoData";
+import { getOrderSourceName } from "@/lib/sourceName";
 import { createClient } from "@/lib/supabaseClient";
 import type { Order } from "@/types/order";
 
@@ -74,19 +75,18 @@ export function OrdersClient() {
         (statusFilter === "delivered" && order.delivery_status === "delivered") ||
         (statusFilter === "cancelled" && order.delivery_status === "cancelled");
       const categoryMatch = categoryFilter === "all" || order.category === categoryFilter;
-      const sourceMatch = sourceFilter === "all" || order.source_group_id === sourceFilter;
+      const sourceMatch = sourceFilter === "all" || getOrderSourceName(order) === sourceFilter;
       return searchMatch && statusMatch && categoryMatch && sourceMatch;
     });
   }, [categoryFilter, orders, search, sourceFilter, statusFilter]);
 
   const sourceOptions = useMemo(() => {
-    const options = new Map<string, string>();
+    const options = new Set<string>();
     orders.forEach((order) => {
-      if (order.source_group_id && order.source_groups?.name) {
-        options.set(order.source_group_id, order.source_groups.name);
-      }
+      const source = getOrderSourceName(order);
+      if (source !== "No source") options.add(source);
     });
-    return Array.from(options.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+    return Array.from(options).sort((a, b) => a.localeCompare(b));
   }, [orders]);
 
   async function updateOrder(id: string, values: Partial<Order>) {
@@ -164,8 +164,8 @@ export function OrdersClient() {
           </select>
           <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value)} className="h-11 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-palm">
             <option value="all">All sources</option>
-            {sourceOptions.map(([id, name]) => (
-              <option key={id} value={id}>{name}</option>
+            {sourceOptions.map((name) => (
+              <option key={name} value={name}>{name}</option>
             ))}
           </select>
         </div>

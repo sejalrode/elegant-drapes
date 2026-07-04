@@ -14,6 +14,7 @@ export type Order = {
   order_code: string | null;
   order_date: string;
   source_group_id: string | null;
+  source_name: string | null;
   item_photo_url: string | null;
   category: Category;
   actual_price: number;
@@ -33,7 +34,7 @@ export type Order = {
 
 export type OrderFormValues = {
   order_date: string;
-  source_group_id: string;
+  source_name: string;
   category: Category;
   actual_price: string;
   selling_price: string;
